@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "parsimony-mem"
+version = "0.1.0a1"
+description = "Deterministic, LLM-call-free forgetting policy (admission / eviction / compression / semantic-dedup) for AI agent long-term memory."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "hinanohart" }]
+keywords = [
+  "agent-memory",
+  "forgetting",
+  "eviction",
+  "tinylfu",
+  "submodular",
+  "rate-distortion",
+  "mem0",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+embed = ["sentence-transformers>=2.2"]
+mem0 = ["mem0ai>=0.1"]
+bench = ["datasets>=2.0", "pulp>=2.7"]
+dev = ["pytest>=7.4", "hypothesis>=6.80", "ruff>=0.6", "mypy>=1.8", "pulp>=2.7"]
+all = ["sentence-transformers>=2.2", "mem0ai>=0.1", "datasets>=2.0", "pulp>=2.7"]
+
+[project.scripts]
+parsimony = "parsimony.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/hinanohart/parsimony"
+Repository = "https://github.com/hinanohart/parsimony"
+Issues = "https://github.com/hinanohart/parsimony/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/parsimony"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/parsimony", "tests", "ci", "README.md", "LICENSE", "pyproject.toml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src/parsimony"]
+ignore_missing_imports = true
+warn_unused_ignores = false
+disallow_untyped_defs = false
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

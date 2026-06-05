@@ -1,0 +1,31 @@
+# build-state (never commit)
+.parsimony-progress.json
+.parsimony.lock
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage
+htmlcov/
+
+# venv
+.venv/
+venv/
+env/
+
+# data (downloaded benchmark corpora are not vendored)
+data/
+*.jsonl.gz
+
+# editor / os
+.vscode/
+.idea/
+.DS_Store
