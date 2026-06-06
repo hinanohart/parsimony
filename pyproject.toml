@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "parsimony-mem"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Deterministic, LLM-call-free forgetting policy (admission / eviction / compression / semantic-dedup) for AI agent long-term memory."
 readme = "README.md"
 requires-python = ">=3.10"

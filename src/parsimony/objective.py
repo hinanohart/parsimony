@@ -8,6 +8,8 @@ make ``utility`` exactly a normalized W-TinyLFU frequency.
 
 from __future__ import annotations
 
+from typing import Any
+
 from .config import PolicyConfig
 from .types import MemoryItem
 
@@ -26,13 +28,13 @@ def utility(cfg: PolicyConfig, *, freq_est: int, removal_loss: float, salience: 
 
 def utility_terms(
     cfg: PolicyConfig, *, freq_est: int, removal_loss: float, salience: float
-) -> tuple[float, list[dict]]:
+) -> tuple[float, list[dict[str, Any]]]:
     """Return (utility, contributing_terms) where contributions sum to utility."""
     fn = freq_norm(freq_est)
     c_freq = cfg.w_freq * fn
     c_cover = cfg.w_cover * removal_loss
     c_sal = cfg.w_salience * salience
-    terms: list[dict] = [
+    terms: list[dict[str, Any]] = [
         {
             "term": "frequency",
             "weight": cfg.w_freq,

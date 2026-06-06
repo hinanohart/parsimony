@@ -10,6 +10,8 @@ weighted coverage.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 from .config import PolicyConfig
@@ -18,53 +20,44 @@ from .types import DecisionType, EvictDecision
 
 
 class _Coverage:
-    """Weighted facility-location over the live set (universe == facilities == kept)."""
+    """Weighted ghost-mass eviction over the live set.
+
+    The universe is everything ever seen, represented by the kept items, each
+    carrying a ``weight`` (its accumulated ghost mass). Evicting item ``v`` folds
+    its mass into its nearest surviving representative, at a coverage cost of
+    ``w[v] * (1 - sim(v, nearest_survivor))`` -- the distortion of letting that
+    representative stand in for ``v``. Dropping the cheapest item each round and
+    transferring its mass keeps a bounded-memory approximation of the full-stream
+    facility-location coverage. Every quantity is recomputed over the *current*
+    live set, so a removed neighbour can never leave a stale value that mis-ranks
+    a later victim.
+    """
 
     def __init__(self, sim_clipped: np.ndarray, weights: np.ndarray):
         self.sim = sim_clipped
         self.n = sim_clipped.shape[0]
         self.w = np.asarray(weights, dtype=np.float64).copy()
         self.kept = [True] * self.n
-        self.best = np.zeros(self.n)
-        self.second = np.zeros(self.n)
-        self.argbest = np.full(self.n, -1, dtype=int)
-        for u in range(self.n):
-            self._recompute_row(u)
-
-    def _recompute_row(self, u: int) -> None:
-        if not self.kept[u]:
-            self.best[u] = 0.0
-            self.second[u] = 0.0
-            self.argbest[u] = -1
-            return
-        b1 = -1.0
-        b2 = -1.0
-        a1 = -1
-        row = self.sim[u]
-        for j in range(self.n):
-            if not self.kept[j]:
-                continue
-            s = float(row[j])
-            if s > b1 or (s == b1 and (a1 == -1 or j < a1)):
-                b2, b1, a1 = b1, s, j
-            elif s > b2:
-                b2 = s
-        self.best[u] = max(b1, 0.0)
-        self.second[u] = max(b2, 0.0)
-        self.argbest[u] = a1
 
     def live(self) -> list[int]:
         return [j for j in range(self.n) if self.kept[j]]
 
-    def removal_loss(self) -> dict[int, float]:
-        loss = {j: 0.0 for j in self.live()}
-        for u in range(self.n):
-            if not self.kept[u]:
+    def _best_other(self, u: int) -> float:
+        """Highest similarity from ``u`` to any *other* live item (0 if none)."""
+        best = 0.0
+        row = self.sim[u]
+        for j in range(self.n):
+            if j == u or not self.kept[j]:
                 continue
-            j = int(self.argbest[u])
-            if j >= 0 and self.kept[j]:
-                loss[j] += self.w[u] * float(self.best[u] - self.second[u])
-        return loss
+            s = float(row[j])
+            if s > best:
+                best = s
+        return best
+
+    def removal_loss(self) -> dict[int, float]:
+        """Weighted coverage cost of evicting each live item (folding it into its
+        nearest surviving representative)."""
+        return {j: self.w[j] * (1.0 - self._best_other(j)) for j in self.live()}
 
     def remove_and_transfer(self, victim: int) -> tuple[int, float]:
         """Evict ``victim``; hand its weight to the nearest survivor. Returns (rep, sim)."""
@@ -80,17 +73,14 @@ class _Coverage:
         self.kept[victim] = False
         if nearest >= 0:
             self.w[nearest] += self.w[victim]
-        for u in range(self.n):
-            if int(self.argbest[u]) == victim:
-                self._recompute_row(u)
         return nearest, (nsim if nearest >= 0 else 0.0)
 
 
 def _evict_order(
     ids: list[str], sim_clipped: np.ndarray, weights: np.ndarray, n_remove: int
-) -> tuple[list[dict], np.ndarray]:
+) -> tuple[list[dict[str, Any]], np.ndarray]:
     cov = _Coverage(sim_clipped, weights)
-    out: list[dict] = []
+    out: list[dict[str, Any]] = []
     for _ in range(n_remove):
         live = cov.live()
         if len(live) <= 1:

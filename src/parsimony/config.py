@@ -32,6 +32,9 @@ class PolicyConfig:
     #                     the least-covering item (parsimony's coverage objective).
     #   True            = admission-control mode: TinyLFU may reject the newcomer
     #                     to protect higher-frequency incumbents.
+    # Ghost-mass weight transfer (an evicted item's coverage mass handed to its
+    # nearest survivor) is specific to eviction mode; admission-control mode does a
+    # frequency-based hard displace and leaves weights untouched.
     admission_control: bool = False
 
     # --- unified objective weights (a1 default = pure W-TinyLFU utility) ---
@@ -58,6 +61,9 @@ class PolicyConfig:
             raise ValueError("dedup_threshold must be in [0, 1]")
         if self.cms_depth < 1:
             raise ValueError("cms_depth must be >= 1")
+        levels = self.compression_levels
+        if not levels or any(b <= a for a, b in zip(levels, levels[1:], strict=False)):
+            raise ValueError("compression_levels must be non-empty and strictly ascending")
 
     def digest(self) -> str:
         """Stable short hash of the configuration (for trace reproducibility)."""

@@ -10,6 +10,7 @@ share information: an item others can reconstruct is cheaper to drop.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
@@ -44,12 +45,17 @@ def compress_item(
     embed_fn: EmbedFn | None = None,
     coverage_residual: float | None = None,
 ) -> CompressDecision:
-    """Choose the rate-distortion-optimal compression level for one item."""
+    """Choose the rate-distortion-optimal compression level for one item.
+
+    ``coverage_residual`` is how well the rest of the pool already covers this
+    item (computed from its verbatim embedding); it discounts the drop level's
+    distortion so an item others can reconstruct is cheaper to drop.
+    """
     verbatim_tokens = max(1, extractive.token_count(item.text))
     lam = cfg.lambda0 * item.salience * _type_weight(item.text, cfg)
     levels = cfg.compression_levels
 
-    curve: list[dict] = []
+    curve: list[dict[str, Any]] = []
     for level in levels:
         text_l = extractive.render(item.text, level, levels, cfg.skeleton_keep_ratio)
         rate_tokens = extractive.token_count(text_l)

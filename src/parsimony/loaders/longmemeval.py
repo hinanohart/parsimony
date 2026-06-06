@@ -27,7 +27,7 @@ class LMEQuestion:
     gold_session_ids: list[str]
 
 
-def date_key(s: str, fallback: int) -> tuple:
+def date_key(s: str, fallback: int) -> tuple[int, ...]:
     m = _DATE.search(s or "")
     if not m:
         return (9999, 99, 99, 99, 99, fallback)

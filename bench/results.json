@@ -3,12 +3,12 @@
     "competitive_ratio_vs_belady_greedy": {
       "note": "parsimony online coverage / clairvoyant greedy coverage (all questions)",
       "source": "longmemeval_s@08d8dad4",
-      "value": 0.973
+      "value": 0.9407
     },
     "competitive_ratio_vs_belady_ilp": {
       "note": "parsimony online coverage / OPT-static ILP coverage; ILP on 50 questions, 50 proven optimal",
       "source": "longmemeval_s@08d8dad4",
-      "value": 0.9676
+      "value": 0.9421
     }
   },
   "policies": {
@@ -75,19 +75,19 @@
       },
       "coverage": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.7435
+        "value": 0.7193
       },
       "gold_hit_all": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.04
+        "value": 0.0533
       },
       "gold_hit_any": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.22
+        "value": 0.2133
       },
       "intra_set_redundancy": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.5641
+        "value": 0.4143
       }
     },
     "parsimony+dedup": {
@@ -97,23 +97,23 @@
       },
       "avg_merges": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.0267
+        "value": 0.0333
       },
       "coverage": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.7435
+        "value": 0.7193
       },
       "gold_hit_all": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.04
+        "value": 0.0533
       },
       "gold_hit_any": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.22
+        "value": 0.2133
       },
       "intra_set_redundancy": {
         "source": "longmemeval_s@08d8dad4",
-        "value": 0.5641
+        "value": 0.4143
       }
     },
     "random": {

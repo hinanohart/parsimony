@@ -13,7 +13,7 @@ from typing import Any, Protocol
 import numpy as np
 
 from .admission import admit
-from .compression import apply_compression, compress_item
+from .compression import EmbedFn, apply_compression, compress_item
 from .config import PolicyConfig
 from .dedup import find_duplicate, merge
 from .eviction import evict as _evict_op
@@ -69,19 +69,22 @@ class Parsimony:
     def _record(self, decision: object, item_id: str) -> None:
         self._explain[item_id] = explain_decision(decision, self.cfg)
 
-    def _embed_fn(self):  # type: ignore[no-untyped-def]
+    def _embed_fn(self) -> EmbedFn | None:
         return None if self.embedder is None else self.embedder.encode
 
     # --- write path ---
     def on_write(self, item: MemoryItem) -> AdmitDecision:
         """Admit, reject, or merge a new memory."""
-        self.cms.increment(item.id)
+        if not np.isfinite(item.embedding).all():
+            raise ValueError("embedding contains non-finite values (nan/inf)")
         pool = self._ensure_pool(item.embedding.shape[0])
 
         match, sim = find_duplicate(item, pool, self.cfg)
         if match is not None:
             existing = pool.items[match]
             pool.items[match] = merge(existing, item)
+            # Count the access under the surviving id only; item.id is discarded
+            # on merge, so it must not leave a footprint in the frequency sketch.
             self.cms.increment(match)
             decision = AdmitDecision(
                 item.id,
@@ -94,6 +97,9 @@ class Parsimony:
             self._record(decision, item.id)
             return decision
 
+        # Not a duplicate: the newcomer keeps its own id (admit / reject / evict
+        # decisions all reference it), so count the access under item.id now.
+        self.cms.increment(item.id)
         if self.cfg.admission_control and len(pool) >= self.cfg.capacity:
             # TinyLFU admission-control mode: the newcomer may be rejected.
             decision = admit(item, pool, self.cms, self.cfg)

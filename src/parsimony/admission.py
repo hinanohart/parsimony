@@ -42,15 +42,18 @@ def find_victim(pool: MemoryPool, cms: CountMinSketch4Bit, cfg: PolicyConfig) ->
         return None
     rl = _resident_removal_losses(pool, cfg)
 
-    def key(i: str) -> tuple[float, float, float, str]:
+    def rank(i: str) -> tuple[float, float, float]:
         it = pool.items[i]
         u = utility(
             cfg, freq_est=cms.estimate(i), removal_loss=rl.get(i, 0.0), salience=it.salience
         )
-        # min utility, then weakest tie-break (low salience, newer, larger id)
-        return (u, it.salience, -it.created_at, i)
+        # weakest first: min utility, then low salience, then newer (larger created_at)
+        return (u, it.salience, -it.created_at)
 
-    return min(ids, key=key)
+    weakest = min(rank(i) for i in ids)
+    # Mirror prefers(): on a full tie it keeps the smaller id, so the victim is the
+    # *larger* id among the equally-weakest residents.
+    return max(i for i in ids if rank(i) == weakest)
 
 
 def admit(
