@@ -37,10 +37,21 @@ def explain_admission(d: AdmitDecision, cfg: PolicyConfig) -> dict[str, Any]:
         "victim_utility": d.trace.get("victim_utility"),
     }
     out["dedup"] = {"merged_into": d.merged_into, "sim": d.trace.get("dedup", {}).get("sim")}
+    out["tie_break"] = d.trace.get(
+        "tie_break", {"applied": False, "rule": "salience desc, then created_at asc, then id asc"}
+    )
     if d.merged_into:
         out["counterfactual"] = (
             f"would stay a separate memory if its cosine to {d.merged_into} "
             f"were below {cfg.dedup_threshold}"
+        )
+    elif d.trace.get("mode") == "eviction":
+        out["admission"]["evicted"] = d.trace.get("evicted", [])
+        out["counterfactual"] = (
+            "would be kept if it added more facility-location coverage than the "
+            "least-covering resident"
+            if not d.admitted
+            else "admitted; over capacity, the least-covering item was evicted instead"
         )
     elif d.decision.value == "reject":
         out["counterfactual"] = (

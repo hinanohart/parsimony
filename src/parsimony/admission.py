@@ -16,6 +16,8 @@ from .sketch import CountMinSketch4Bit
 from .store import MemoryPool
 from .types import AdmitDecision, DecisionType, MemoryItem
 
+_TIE_RULE = "salience desc, then created_at asc, then id asc"
+
 
 def _candidate_removal_loss(candidate: MemoryItem, pool: MemoryPool) -> float:
     ids, e = pool.matrix()
@@ -70,7 +72,12 @@ def admit(
             DecisionType.ADMIT,
             True,
             reason="pool below capacity",
-            trace={"utility": u_c, "contributing_terms": terms, "capacity": cfg.capacity},
+            trace={
+                "utility": u_c,
+                "contributing_terms": terms,
+                "capacity": cfg.capacity,
+                "tie_break": {"applied": False, "rule": _TIE_RULE},
+            },
         )
 
     v = find_victim(pool, cms, cfg)
@@ -89,7 +96,8 @@ def admit(
         removal_loss=rl.get(v, 0.0),
         salience=victim_item.salience,
     )
-    admit_it = (u_c > u_v) or (u_c == u_v and prefers(candidate, victim_item))
+    tie = u_c == u_v
+    admit_it = (u_c > u_v) or (tie and prefers(candidate, victim_item))
     decision = DecisionType.ADMIT if admit_it else DecisionType.REJECT
     reason = f"utility {u_c:.4f} {'>' if admit_it else '<='} victim {v} {u_v:.4f}"
     return AdmitDecision(
@@ -102,5 +110,6 @@ def admit(
             "victim_id": v,
             "victim_utility": u_v,
             "contributing_terms": terms_c,
+            "tie_break": {"applied": tie, "rule": _TIE_RULE},
         },
     )

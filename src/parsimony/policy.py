@@ -94,20 +94,54 @@ class Parsimony:
             self._record(decision, item.id)
             return decision
 
-        decision = admit(item, pool, self.cms, self.cfg)
-        if decision.admitted:
-            if len(pool) >= self.cfg.capacity:
+        if self.cfg.admission_control and len(pool) >= self.cfg.capacity:
+            # TinyLFU admission-control mode: the newcomer may be rejected.
+            decision = admit(item, pool, self.cms, self.cfg)
+            if decision.admitted:
                 victim_id = decision.trace.get("victim_id")
                 if victim_id is not None and victim_id in pool:
                     pool.remove(victim_id)
-                    ev = EvictDecision(
+                    self._record(
+                        EvictDecision(
+                            victim_id,
+                            decision=DecisionType.EVICT,
+                            reason=f"displaced by {item.id} (TinyLFU admission)",
+                            trace={"displaced_by": item.id},
+                        ),
                         victim_id,
-                        decision=DecisionType.EVICT,
-                        reason=f"displaced by {item.id} (TinyLFU admission)",
-                        trace={"displaced_by": item.id},
                     )
-                    self._record(ev, victim_id)
-            pool.add(item)
+                pool.add(item)
+            self._record(decision, item.id)
+            return decision
+
+        # Eviction mode (default): always admit, then facility-location evict the
+        # least-covering item when over capacity (parsimony's coverage objective).
+        pool.add(item)
+        if len(pool) > self.cfg.capacity:
+            evicted = _evict_op(pool, self.cfg, n=len(pool) - self.cfg.capacity)
+            for e in evicted:
+                self._record(e, e.item_id)
+            evicted_ids = [e.item_id for e in evicted]
+            newcomer_evicted = item.id in evicted_ids
+            decision = AdmitDecision(
+                item.id,
+                DecisionType.REJECT if newcomer_evicted else DecisionType.ADMIT,
+                admitted=not newcomer_evicted,
+                reason=(
+                    "evicted on write as the least-covering item"
+                    if newcomer_evicted
+                    else f"admitted; evicted by coverage: {evicted_ids}"
+                ),
+                trace={"mode": "eviction", "evicted": evicted_ids},
+            )
+        else:
+            decision = AdmitDecision(
+                item.id,
+                DecisionType.ADMIT,
+                admitted=True,
+                reason="admitted (pool below capacity)",
+                trace={"mode": "eviction", "evicted": []},
+            )
         self._record(decision, item.id)
         return decision
 

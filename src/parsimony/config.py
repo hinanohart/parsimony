@@ -27,7 +27,19 @@ class PolicyConfig:
     # --- semantic dedup (write-time) ---
     dedup_threshold: float = 0.92
 
+    # write-path behaviour on overflow:
+    #   False (default) = eviction mode: always admit, then facility-location evict
+    #                     the least-covering item (parsimony's coverage objective).
+    #   True            = admission-control mode: TinyLFU may reject the newcomer
+    #                     to protect higher-frequency incumbents.
+    admission_control: bool = False
+
     # --- unified objective weights (a1 default = pure W-TinyLFU utility) ---
+    # These weight the shared utility used by admission/dedup tie-breaks. Eviction
+    # (facility-location) and compression (rate-distortion) use their own criteria
+    # built from the same signals but are not routed through utility(). Note that
+    # admission's first-order removal_loss and eviction's incremental coverage loss
+    # are scaled differently; the a1 default (w_cover=0) keeps admission frequency-only.
     w_freq: float = 1.0
     w_cover: float = 0.0
     w_salience: float = 0.0

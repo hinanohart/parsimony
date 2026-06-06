@@ -36,6 +36,10 @@ report both rather than hiding the one we lose.
 pip install "parsimony-mem @ git+https://github.com/hinanohart/parsimony"
 # import name is `parsimony`; the PyPI distribution name is `parsimony-mem`
 # (the name `parsimony` on PyPI is an unrelated caching library).
+
+# to run the ILP benchmark you also need the [bench] extra (pulp, datasets):
+pip install "parsimony-mem[bench] @ git+https://github.com/hinanohart/parsimony"
+# (without pulp, the Belady ILP gracefully falls back to the clairvoyant greedy oracle)
 ```
 
 ## Quickstart
@@ -52,9 +56,9 @@ def item(i, text):
     return MemoryItem(id=i, text=text, embedding=emb.encode(text))
 
 p.on_write(item("m1", "the user's birthday is on the 3rd of March"))
-p.on_write(item("m2", "the user's birthday is on the 3rd of March every year"))  # -> merge
+p.on_write(item("m2", "the user's birthday is on the 3rd of March"))  # same content -> merge
 p.on_write(item("m3", "the user likes hiking in the mountains"))
-p.on_write(item("m4", "the user prefers tea over coffee"))                       # -> evict/reject
+p.on_write(item("m4", "the user prefers tea over coffee"))           # full pool -> evict/reject
 
 print([it.id for it in p.snapshot()])
 print("llm calls:", p.llm_calls)          # 0
@@ -72,13 +76,17 @@ parsimony bench --data data/longmemeval_s.json --n 150 --capacity 10
 
 | operator | module | what it does |
 |---|---|---|
-| **A. admission** | `admission.py` | TinyLFU: a full pool admits a newcomer only if its keep-utility beats the weakest resident's |
-| **B. eviction** | `eviction.py` | facility-location submodular greedy with ghost-mass weighting (keeps a coverage-maximal subset) |
+| **A. admission** | `admission.py` | TinyLFU: a full pool admits a newcomer only if its keep-utility beats the weakest resident's (opt-in via `admission_control=True`) |
+| **B. eviction** | `eviction.py` | facility-location submodular greedy with ghost-mass weighting (keeps a coverage-maximal subset) — the **default** `on_write` overflow behaviour |
 | **C. compression** | `compression.py` | per-item rate-distortion level choice (`rate + λ·distortion`); extractive, non-generative |
 | **D. dedup** | `dedup.py` | write-time semantic near-duplicate merge (cosine ≥ τ) — mem0 dedups by md5; this works in embedding space |
 
-All four read the same `utility / cost` plane (`objective.py`), so every decision
-is a linear combination of the same terms and is reported in an `ExplainTrace`.
+The four operators are built from the same signals (frequency, coverage,
+salience, rate) and one shared config. Admission and dedup route through the
+unified `utility()` (`objective.py`); eviction (facility-location) and
+compression (rate-distortion) apply their own coverage and rate-distortion
+criteria directly. Every decision is reported as an `ExplainTrace` whose
+`contributing_terms` sum to the utility, with a one-line counterfactual.
 
 ## Benchmark (real data, reproducible)
 

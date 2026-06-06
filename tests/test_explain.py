@@ -31,18 +31,31 @@ def test_reject_has_counterfactual():
 
 
 def test_eviction_trace_has_representative():
+    # capacity 3 with 4 distinct directions: the 4th write triggers facility-location
+    # eviction on the write path (eviction mode is the facade default).
+    p = Parsimony(capacity=3, config=PolicyConfig(capacity=3, dedup_threshold=0.99))
+    for name, vec in [
+        ("a", [1.0, 0.0, 0.0, 0.0]),
+        ("b", [0.0, 1.0, 0.0, 0.0]),
+        ("c", [0.0, 0.0, 1.0, 0.0]),
+        ("d", [0.0, 0.0, 0.0, 1.0]),
+    ]:
+        p.on_write(make_item(name, name, vec))
+    kept = {it.id for it in p.snapshot()}
+    evicted = [x for x in ["a", "b", "c", "d"] if x not in kept]
+    assert evicted  # an eviction happened on the write path
+    tr = p.explain(evicted[0])
+    assert tr["decision"] == "evict"
+    assert "eviction" in tr and "counterfactual" in tr
+    assert "nearest_after_id" in tr["eviction"]
+
+
+def test_admission_trace_has_tie_break_block():
     p = Parsimony(capacity=2)
-    p.on_write(make_item("a1", "a", [1.0, 0.0]))
-    p.on_write(
-        make_item("a2", "a copy", [1.0, 0.0001])
-    )  # near dup, but below default tau? sim~1 -> merge
-    p.on_write(make_item("b", "b", [0.0, 1.0]))
-    p.on_write(make_item("c", "c", [0.0, 1.0]))  # forces work
-    p.step()
-    # whichever was evicted, its trace (if any) carries a counterfactual
-    for it in p.snapshot():
-        tr = p.explain(it.id)
-        assert "schema_version" in tr
+    p.on_write(make_item("a", "a", [1.0, 0.0]))
+    tr = p.explain("a")
+    assert "tie_break" in tr
+    assert set(tr["tie_break"]) == {"applied", "rule"}
 
 
 def test_config_digest_stable():
