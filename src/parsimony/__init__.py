@@ -7,6 +7,8 @@ The public surface is assembled as the package stabilizes. Importing
 from __future__ import annotations
 
 from .config import PolicyConfig
+from .explain import explain_decision
+from .policy import EmbeddingBackend, Parsimony
 from .store import MemoryPool, normalize
 from .types import (
     AccessEvent,
@@ -21,6 +23,8 @@ from .types import (
 __version__ = "0.1.0a1"
 
 __all__ = [
+    "Parsimony",
+    "EmbeddingBackend",
     "PolicyConfig",
     "MemoryPool",
     "normalize",
@@ -31,5 +35,6 @@ __all__ = [
     "EvictDecision",
     "CompressDecision",
     "StepReport",
+    "explain_decision",
     "__version__",
 ]
