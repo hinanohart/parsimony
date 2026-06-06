@@ -35,9 +35,9 @@ dependencies = ["numpy>=1.24"]
 [project.optional-dependencies]
 embed = ["sentence-transformers>=2.2"]
 mem0 = ["mem0ai>=0.1"]
-bench = ["datasets>=2.0", "pulp>=2.7"]
-dev = ["pytest>=7.4", "hypothesis>=6.80", "ruff>=0.6", "mypy>=1.8", "pulp>=2.7"]
-all = ["sentence-transformers>=2.2", "mem0ai>=0.1", "datasets>=2.0", "pulp>=2.7"]
+bench = ["datasets>=2.0", "pulp>=2.7,<4"]
+dev = ["pytest>=7.4", "hypothesis>=6.80", "ruff>=0.6", "mypy>=1.8", "pulp>=2.7,<4"]
+all = ["sentence-transformers>=2.2", "mem0ai>=0.1", "datasets>=2.0", "pulp>=2.7,<4"]
 
 [project.scripts]
 parsimony = "parsimony.cli:main"
@@ -73,3 +73,8 @@ check_untyped_defs = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    "ignore::DeprecationWarning:pulp",
+    "ignore:.*PULP_CBC_CMD.*:DeprecationWarning",
+    "ignore:.*LpVariable.*:DeprecationWarning",
+]

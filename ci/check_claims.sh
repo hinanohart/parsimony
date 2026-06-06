@@ -52,7 +52,7 @@ if [ "${#engine[@]}" -gt 0 ]; then
   fi
 fi
 
-# --- Stage 2: provenance gate (active once benchmark results are committed) ---
+# --- Stage 2: provenance + honesty gate (active once results are committed) ---
 if [ -f bench/results.json ]; then
   if ! grep -qiE 'longmemeval|synthetic' README.md; then
     echo "FAIL stage2: results committed but README declares no data provenance."
@@ -64,6 +64,13 @@ if [ -f bench/results.json ]; then
   if grep -qE '"value"' bench/results.json && ! grep -qE '"source"' bench/results.json; then
     echo "FAIL stage2: results contain values without a 'source' provenance tag."
     fail=1
+  fi
+  # The known limitation must stay in the README (parsimony loses gold-recall).
+  if ! grep -qiE 'recall' README.md; then
+    echo "FAIL stage2: README must state the recall limitation honestly."
+    fail=1
+  else
+    echo "PASS stage2: recall limitation disclosed."
   fi
 else
   echo "SKIP stage2: no bench/results.json yet (provenance gate dormant)."

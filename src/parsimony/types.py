@@ -44,6 +44,7 @@ class MemoryItem:
     tokens: int = 0
     compression_level: int = 0
     content_hash: str = ""
+    weight: float = 1.0  # coverage mass this item stands for (grows when it absorbs evicted items)
 
     def evolve(self, **changes: Any) -> MemoryItem:
         """Return a copy with ``changes`` applied (frozen-safe)."""

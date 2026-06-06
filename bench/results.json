@@ -1,0 +1,184 @@
+{
+  "headline": {
+    "competitive_ratio_vs_belady_greedy": {
+      "note": "parsimony online coverage / clairvoyant greedy coverage (all questions)",
+      "source": "longmemeval_s@08d8dad4",
+      "value": 0.973
+    },
+    "competitive_ratio_vs_belady_ilp": {
+      "note": "parsimony online coverage / OPT-static ILP coverage; ILP on 50 questions, 50 proven optimal",
+      "source": "longmemeval_s@08d8dad4",
+      "value": 0.9676
+    }
+  },
+  "policies": {
+    "mock_judge": {
+      "avg_llm_calls": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 50.4933
+      },
+      "avg_merges": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "coverage": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.7192
+      },
+      "gold_hit_all": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.3533
+      },
+      "gold_hit_any": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.6133
+      },
+      "intra_set_redundancy": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.786
+      }
+    },
+    "oldest": {
+      "avg_llm_calls": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "avg_merges": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "coverage": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.7237
+      },
+      "gold_hit_all": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.1133
+      },
+      "gold_hit_any": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.36
+      },
+      "intra_set_redundancy": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.6578
+      }
+    },
+    "parsimony": {
+      "avg_llm_calls": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "avg_merges": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "coverage": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.7435
+      },
+      "gold_hit_all": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.04
+      },
+      "gold_hit_any": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.22
+      },
+      "intra_set_redundancy": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.5641
+      }
+    },
+    "parsimony+dedup": {
+      "avg_llm_calls": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "avg_merges": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0267
+      },
+      "coverage": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.7435
+      },
+      "gold_hit_all": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.04
+      },
+      "gold_hit_any": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.22
+      },
+      "intra_set_redundancy": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.5641
+      }
+    },
+    "random": {
+      "avg_llm_calls": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "avg_merges": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "coverage": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.7233
+      },
+      "gold_hit_all": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.1133
+      },
+      "gold_hit_any": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.3733
+      },
+      "intra_set_redundancy": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.6599
+      }
+    },
+    "recency": {
+      "avg_llm_calls": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "avg_merges": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.0
+      },
+      "coverage": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.7246
+      },
+      "gold_hit_all": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.1733
+      },
+      "gold_hit_any": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.38
+      },
+      "intra_set_redundancy": {
+        "source": "longmemeval_s@08d8dad4",
+        "value": 0.6715
+      }
+    }
+  },
+  "provenance": {
+    "capacity": 10,
+    "dataset": "longmemeval_s",
+    "embedder": "hashing-dim256",
+    "ilp_optimal": 50,
+    "ilp_solved": 50,
+    "mode": "real-longmemeval",
+    "n_questions": 150,
+    "seed": 0,
+    "sha256": "08d8dad4be43ee2049a22ff5674eb86725d0ce5ff434cde2627e5e8e7e117894",
+    "source": "longmemeval_s@08d8dad4"
+  }
+}
