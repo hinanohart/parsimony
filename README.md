@@ -3,20 +3,18 @@
 > A deterministic, LLM-call-free **forgetting policy** for AI agent long-term memory.
 > *(agent memory — **not** a KV/attention cache.)*
 
+**Status: pre-alpha (`v0.1.0a2`).** APIs may change. Everything claimed below is
+checked in CI; the benchmark numbers are reproducible with `parsimony bench`.
+
 `parsimony` decides **what to admit, what to evict, how far to compress, and what
 to merge** through one explainable objective function — not an LLM judge, not LRU
 with a TTL. It is a *policy shim*: plug it into the memory store you already have
 (mem0 / Letta / Zep), keep your store, swap in a principled forget decision.
 
-**Status: pre-alpha (`v0.1.0a2`).** APIs may change. Everything claimed below is
-checked in CI; the benchmark numbers are reproducible with `parsimony bench`.
-
-```text
 - CPU-only, torch-free core (depends on numpy).
 - Zero LLM calls in the policy path — enforced at runtime and in CI.
 - Deterministic: one seed governs every hash and tie-break; decisions are reproducible.
-- Explainable: every decision emits an ExplainTrace with a counterfactual; admission traces carry contributing_terms that sum to the utility.
-```
+- Explainable: every decision emits an `ExplainTrace` with a counterfactual; admission traces carry `contributing_terms` that sum to the utility.
 
 ## Architecture
 
