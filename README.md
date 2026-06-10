@@ -18,6 +18,27 @@ checked in CI; the benchmark numbers are reproducible with `parsimony bench`.
 - Explainable: every decision emits an ExplainTrace with a counterfactual; admission/dedup traces carry contributing_terms that sum to the utility.
 ```
 
+## Architecture
+
+```mermaid
+flowchart TD
+    Write[on_write call] --> Dedup{Dedup check\ncosine sim}
+    Dedup -->|sim >= threshold| Merge[Merge into existing item]
+    Dedup -->|no match| CMS[TinyLFU sketch\nfrequency count]
+    CMS --> AdmitMode{admission_control\nenabled?}
+    AdmitMode -->|yes and pool full| Admit[admit operator\nutility compare]
+    Admit -->|newcomer wins| EvictWeak[evict weakest resident]
+    Admit -->|newcomer loses| Reject[reject newcomer]
+    AdmitMode -->|no default eviction mode| AddPool[add to pool]
+    AddPool --> PoolFull{pool > capacity?}
+    PoolFull -->|yes| FacLoc[facility-location eviction\nremove most redundant]
+    PoolFull -->|no| Done[admitted]
+    FacLoc --> Done
+    EvictWeak --> Done
+    Merge --> Done
+    Done --> Trace[ExplainTrace recorded]
+```
+
 ## What it is good at (and what it is not)
 
 parsimony optimizes the **diversity** of the retained set: its ghost-mass
@@ -74,6 +95,18 @@ Run the worked example and the benchmark yourself:
 parsimony demo
 parsimony bench --data data/longmemeval_s.json --n 150 --capacity 10 --ilp-sample 50
 ```
+
+## How it works
+
+Each call to `on_write` runs three layers:
+
+1. **Semantic dedup** (`dedup.py`): if the new item's embedding is within cosine threshold of an existing item, the two are merged — no duplicate is admitted.
+2. **Frequency tracking** (`sketch.py`): a 4-bit Count-Min Sketch (TinyLFU doorkeeper) tracks how often each item's content has been seen, without storing the text.
+3. **Eviction or admission control** (`eviction.py` / `admission.py`): when the pool is full, facility-location greedy selects the item that contributes least to coverage of the full set and removes it. Optionally, TinyLFU admission-control can reject the newcomer instead if its utility is lower than the weakest resident.
+
+The `step()` method runs a full maintenance sweep (dedup → evict → compress) and is suitable for periodic background execution.
+
+Every decision is recorded as an `ExplainTrace` and is retrievable via `explain(item_id)`.
 
 ## The four operators (one shared objective)
 
