@@ -22,16 +22,16 @@ checked in CI; the benchmark numbers are reproducible with `parsimony bench`.
 
 ```mermaid
 flowchart TD
-    Write[on_write call] --> Dedup{Dedup check\ncosine sim}
+    Write[on_write call] --> Dedup{Dedup check<br>cosine sim}
     Dedup -->|sim >= threshold| Merge[Merge into existing item]
-    Dedup -->|no match| CMS[TinyLFU sketch\nfrequency count]
-    CMS --> AdmitMode{admission_control\nenabled?}
-    AdmitMode -->|yes and pool full| Admit[admit operator\nutility compare]
+    Dedup -->|no match| CMS[TinyLFU sketch<br>frequency count]
+    CMS --> AdmitMode{admission_control<br>enabled?}
+    AdmitMode -->|yes and pool full| Admit[admit operator<br>utility compare]
     Admit -->|newcomer wins| EvictWeak[evict weakest resident]
     Admit -->|newcomer loses| Reject[reject newcomer]
     AdmitMode -->|no default eviction mode| AddPool[add to pool]
     AddPool --> PoolFull{pool > capacity?}
-    PoolFull -->|yes| FacLoc[facility-location eviction\nremove most redundant]
+    PoolFull -->|yes| FacLoc[facility-location eviction<br>remove most redundant]
     PoolFull -->|no| Done[admitted]
     FacLoc --> Done
     EvictWeak --> Done
