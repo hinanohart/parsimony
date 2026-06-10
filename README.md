@@ -15,7 +15,7 @@ checked in CI; the benchmark numbers are reproducible with `parsimony bench`.
 - CPU-only, torch-free core (depends on numpy).
 - Zero LLM calls in the policy path — enforced at runtime and in CI.
 - Deterministic: one seed governs every hash and tie-break; decisions are reproducible.
-- Explainable: every decision emits an ExplainTrace with a counterfactual; admission/dedup traces carry contributing_terms that sum to the utility.
+- Explainable: every decision emits an ExplainTrace with a counterfactual; admission traces carry contributing_terms that sum to the utility.
 ```
 
 ## Architecture
@@ -118,13 +118,13 @@ Every decision is recorded as an `ExplainTrace` and is retrievable via `explain(
 | **D. dedup** | `dedup.py` | write-time semantic near-duplicate merge (cosine ≥ τ) — mem0 dedups by md5; this works in embedding space |
 
 The four operators are built from the same signals (frequency, coverage,
-salience, rate) and one shared config. Admission and dedup route through the
-unified `utility()` (`objective.py`); eviction (facility-location) and
-compression (rate-distortion) apply their own coverage and rate-distortion
-criteria directly. Every decision is reported as an `ExplainTrace` with a
-one-line counterfactual; admission and dedup traces additionally carry
-`contributing_terms` that sum to the utility, while eviction and compression
-traces carry their coverage and rate-distortion fields.
+salience, rate) and one shared config. Admission routes through the unified
+`utility()` (`objective.py`); dedup uses cosine similarity directly; eviction
+(facility-location) and compression (rate-distortion) apply their own coverage
+and rate-distortion criteria directly. Every decision is reported as an
+`ExplainTrace` with a one-line counterfactual; admission traces additionally
+carry `contributing_terms` that sum to the utility, while eviction and
+compression traces carry their coverage and rate-distortion fields.
 
 ## Benchmark (real data, reproducible)
 
