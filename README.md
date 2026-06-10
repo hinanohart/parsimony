@@ -18,24 +18,9 @@ with a TTL. It is a *policy shim*: plug it into the memory store you already hav
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    Write[on_write call] --> Dedup{Dedup check<br>cosine sim}
-    Dedup -->|sim >= threshold| Merge[Merge into existing item]
-    Dedup -->|no match| CMS[TinyLFU sketch<br>frequency count]
-    CMS --> AdmitMode{admission_control<br>enabled?}
-    AdmitMode -->|yes and pool full| Admit[admit operator<br>utility compare]
-    Admit -->|newcomer wins| EvictWeak[evict weakest resident]
-    Admit -->|newcomer loses| Reject[reject newcomer]
-    AdmitMode -->|no default eviction mode| AddPool[add to pool]
-    AddPool --> PoolFull{pool > capacity?}
-    PoolFull -->|yes| FacLoc[facility-location eviction<br>remove most redundant]
-    PoolFull -->|no| Done[admitted]
-    FacLoc --> Done
-    EvictWeak --> Done
-    Merge --> Done
-    Done --> Trace[ExplainTrace recorded]
-```
+<div align="center">
+  <img src="docs/architecture.png" alt="parsimony architecture" width="840">
+</div>
 
 ## What it is good at (and what it is not)
 
@@ -202,3 +187,4 @@ self-contained (no code dependency).
 ## License
 
 MIT.
+

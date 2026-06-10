@@ -1,0 +1,66 @@
+direction: down
+explanation: |md
+  ### parsimony
+  **A deterministic, LLM-call-free forgetting policy for AI agent long-term memory** — not a KV/attention cache.
+| {near: top-center}
+
+write: "① on_write call" {shape: oval; style: {fill: "#6366f1"; font-color: "#ffffff"; stroke: "#4338ca"; bold: true; font-size: 18}}
+
+dedup_zone: "Deduplication" {
+  style: {fill: "#f0fdf4"; stroke: "#10b981"; font-color: "#065f46"; bold: true; font-size: 16}
+  dedup: "② Dedup check\ncosine sim"
+  merge: "Merge into existing item"
+  dedup.style.fill: "#dcfce7"; dedup.style.font-color: "#065f46"
+  merge.style.fill: "#dcfce7"; merge.style.font-color: "#065f46"
+}
+
+admit_zone: "Admission Control" {
+  style: {fill: "#fffbeb"; stroke: "#f59e0b"; font-color: "#92400e"; bold: true; font-size: 16}
+  cms: "③ TinyLFU sketch\nfrequency count"
+  admit_mode: "admission_control\nenabled?"
+  admit: "admit operator\nutility compare"
+  evict: "evict weakest resident"
+  reject: "reject newcomer"
+  add_pool: "add to pool"
+  cms.style.fill: "#fef3c7"; cms.style.font-color: "#92400e"
+  admit_mode.style.fill: "#fef3c7"; admit_mode.style.font-color: "#92400e"
+  admit.style.fill: "#fef3c7"; admit.style.font-color: "#92400e"
+  evict.style.fill: "#fef3c7"; evict.style.font-color: "#92400e"
+  reject.style.fill: "#fef3c7"; reject.style.font-color: "#92400e"
+  add_pool.style.fill: "#fef3c7"; add_pool.style.font-color: "#92400e"
+}
+
+pool_zone: "Pool Management" {
+  style: {fill: "#f0fdf4"; stroke: "#10b981"; font-color: "#065f46"; bold: true; font-size: 16}
+  pool_full: "pool > capacity?"
+  facloc: "⑤ facility-location eviction\nremove most redundant"
+  done: "⑥ admitted"
+  pool_full.style.fill: "#dcfce7"; pool_full.style.font-color: "#065f46"
+  facloc.style.fill: "#dcfce7"; facloc.style.font-color: "#065f46"
+  done.style.fill: "#dcfce7"; done.style.font-color: "#065f46"
+}
+
+trace: "ExplainTrace recorded" {shape: cylinder; style: {fill: "#fdf2f8"; font-color: "#9d174e"; stroke: "#ec4899"; bold: true}}
+
+write -> dedup_zone.dedup: "① check"
+dedup_zone.dedup -> dedup_zone.merge: "sim >= threshold"
+dedup_zone.dedup -> admit_zone.cms: "no match"
+admit_zone.cms -> admit_zone.admit_mode: "③ count"
+admit_zone.admit_mode -> admit_zone.admit: "yes and pool full"
+admit_zone.admit_mode -> admit_zone.add_pool: "no default"
+admit_zone.admit -> admit_zone.evict: "newcomer wins"
+admit_zone.admit -> admit_zone.reject: "newcomer loses"
+admit_zone.add_pool -> pool_zone.pool_full: "④ check"
+pool_zone.pool_full -> pool_zone.facloc: "yes"
+pool_zone.pool_full -> pool_zone.done: "no"
+pool_zone.facloc -> pool_zone.done: "⑤ evict"
+admit_zone.evict -> pool_zone.done: "admitted"
+dedup_zone.merge -> pool_zone.done: "merged"
+pool_zone.done -> trace: "⑥ record"
+
+legend: "Legend" {
+  near: bottom-center
+  style: {fill: "#f8fafc"; stroke: "#cbd5e1"; font-size: 13}
+  e: "● entry"; c: "● dedup"; p: "● admission"; b: "● pool mgmt"; d: "● trace/output"
+  e.style.font-color: "#4338ca"; c.style.font-color: "#0369a1"; p.style.font-color: "#10b981"; b.style.font-color: "#f59e0b"; d.style.font-color: "#ec4899"
+}
